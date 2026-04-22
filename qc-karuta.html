@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QC Karuta</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --accent: #4f8ef7;
+    --accent2: #f7c94f;
+    --text: #e8eaf0;
+    --text2: #8b90a8;
+    --green: #3ecf8e;
+    --red: #f75757;
+    --border: #2e3248;
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+    background-image: radial-gradient(ellipse at 20% 20%, #1a2040 0%, transparent 60%),
+                      radial-gradient(ellipse at 80% 80%, #1a1530 0%, transparent 60%);
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    padding: 32px 0 24px;
+  }
+
+  header h1 {
+    font-family: 'Kanit', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    color: var(--text2);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  /* Score Board */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .player-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .player-card.winning { border-color: var(--accent2); }
+
+  .player-label {
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .score-num {
+    font-family: 'Kanit', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 14px;
+    transition: transform 0.15s;
+  }
+
+  .score-num.bump {
+    animation: bump 0.25s ease;
+  }
+
+  @keyframes bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  .score-btns {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-plus, .btn-minus {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  .btn-plus:active, .btn-minus:active { transform: scale(0.95); }
+
+  .btn-plus { background: var(--green); color: #0f1117; }
+  .btn-minus { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-plus:hover { opacity: 0.85; }
+  .btn-minus:hover { opacity: 0.75; }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: var(--text2);
+  }
+
+  .status-bar .pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--accent);
+  }
+
+  /* Card display */
+  .card-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .card-area::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card-area.active::before { opacity: 1; }
+  .card-area.active { border-color: var(--accent); }
+
+  .card-num {
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text2);
+    opacity: 0.6;
+  }
+
+  .card-text {
+    font-size: 1.3rem;
+    font-weight: 400;
+    line-height: 1.7;
+    text-align: center;
+    color: var(--text);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .card-text.placeholder {
+    color: var(--text2);
+    font-size: 1rem;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Draw button */
+  .btn-draw {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #3a7be0);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Kanit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-bottom: 10px;
+  }
+
+  .btn-draw:hover:not(:disabled) { opacity: 0.9; }
+  .btn-draw:active:not(:disabled) { transform: scale(0.99); }
+
+  .btn-draw:disabled {
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: not-allowed;
+    border: 1px solid var(--border);
+  }
+
+  .btn-reset {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+
+  .btn-reset:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* Audio status */
+  .audio-note {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text2);
+    margin-top: 8px;
+    opacity: 0.6;
+  }
+
+  .played-list {
+    margin-top: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+  }
+
+  .played-list h3 {
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .played-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 0.78rem;
+    color: var(--text2);
+    animation: chipIn 0.2s ease;
+  }
+
+  @keyframes chipIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @media (max-width: 500px) {
+    .scoreboard { gap: 8px; }
+    .score-num { font-size: 2.8rem; }
+    .card-text { font-size: 1.15rem; }
+    .btn-draw { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎴 QC Karuta</h1>
+    <p>สุ่มคำถาม 30 ข้อ — ไม่ซ้ำ</p>
+  </header>
+
+  <div class="scoreboard">
+    <div class="player-card" id="cardA">
+      <div class="player-label">ผู้เล่น A</div>
+      <div class="score-num" id="scoreA">0</div>
+      <div class="score-btns">
+        <button class="btn-plus" onclick="changeScore('A', 1)">+1</button>
+        <button class="btn-minus" onclick="changeScore('A', -1)">−1</button>
+      </div>
+    </div>
+    <div class="player-card" id="cardB">
+      <div class="player-label">ผู้เล่น B</div>
+      <div class="score-num" id="scoreB">0</div>
+      <div class="score-btns">
+        <button class="btn-plus" onclick="changeScore('B', 1)">+1</button>
+        <button class="btn-minus" onclick="changeScore('B', -1)">−1</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar" style="width:100%"></div>
+  </div>
+
+  <div class="status-bar">
+    <span id="statusLabel">เหลือไพ่ในกอง: <strong>30</strong> ใบ</span>
+    <span class="pill" id="cardPill">ข้อ —</span>
+  </div>
+
+  <div class="card-area" id="cardArea">
+    <div class="card-text placeholder">กด "สุ่มคำถาม" เพื่อเริ่มเกม</div>
+  </div>
+
+  <button class="btn-draw" id="drawBtn" onclick="drawCard()">🎲 สุ่มคำถาม (เล่นเสียง)</button>
+  <p class="audio-note">🔊 ต้องมีโฟลเดอร์ audio/q1.mp3 … q30.mp3 อยู่ใน repo เดียวกัน</p>
+
+  <div class="played-list" id="playedSection" style="display:none">
+    <h3>ไพ่ที่สุ่มไปแล้ว</h3>
+    <div class="played-chips" id="playedChips"></div>
+  </div>
+
+  <br>
+  <button class="btn-reset" onclick="resetGame()">🔄 รีเซ็ตคะแนน &amp; เริ่มกองไพ่ใหม่</button>
+</div>
+
+<script>
+const masterCards = [
+  { id: 1,  q: "สมการคุณภาพ Q = P/E  ตัว P หมายถึงอะไร" },
+  { id: 2,  q: "สมการคุณภาพ Q = P/E  ตัว E หมายถึงอะไร" },
+  { id: 3,  q: "นิยามคุณภาพที่ว่า 'ความเหมาะสมในการใช้งาน'  เป็นของใคร" },
+  { id: 4,  q: "นิยามคุณภาพที่ว่า 'การสอดคล้องกับข้อกำหนด'  เป็นของใคร" },
+  { id: 5,  q: "มุมมองคุณภาพด้าน User-based  เน้นเรื่องอะไร" },
+  { id: 6,  q: "การประกันคุณภาพ (QA)  เน้นเรื่องอะไร" },
+  { id: 7,  q: "องค์ประกอบความปลอดภัย (Safety)  มุ่งเน้นไปที่อะไร" },
+  { id: 8,  q: "ยุคแรกของวิวัฒนาการคุณภาพคือยุคใด" },
+  { id: 9,  q: "ตัวอักษร P ใน PDCA  คืออะไร" },
+  { id: 10, q: "ตัวอักษร D ใน PDCA  คืออะไร" },
+  { id: 11, q: "ตัวอักษร C ใน PDCA  คืออะไร" },
+  { id: 12, q: "ตัวอักษร A ใน PDCA  คืออะไร" },
+  { id: 13, q: "ใครพัฒนาแผนภูมิก้างปลา" },
+  { id: 14, q: "ใครเสนอแนวคิด Zero Defects  (ของเสียเป็นศูนย์)" },
+  { id: 15, q: "ใครคือบิดาของการควบคุมคุณภาพสมัยใหม่" },
+  { id: 16, q: "ชื่อเรียกเป็นทางการของแผนภูมิก้างปลาคืออะไร" },
+  { id: 17, q: "เครื่องมือที่ใช้เก็บข้อมูลอย่างเป็นระบบ  เพื่อนำไปวิเคราะห์ต่อคืออะไร" },
+  { id: 18, q: "เครื่องมือที่แสดงขั้นตอนการทำงานตั้งแต่ต้นจนจบคืออะไร" },
+  { id: 19, q: "สัญลักษณ์สี่เหลี่ยมข้าวหลามตัดใน Flowchart  หมายถึงอะไร" },
+  { id: 20, q: "การ Brainstorming  มักใช้คู่กับเครื่องมือ QC ใด" },
+  { id: 21, q: "ค่าที่ปรากฏบ่อยที่สุดในชุดข้อมูลเรียกว่าอะไร" },
+  { id: 22, q: "การแจกแจงที่มีรูปทรงระฆังคว่ำและสมมาตรเรียกว่าอะไร" },
+  { id: 23, q: "สถิติพรรณนา (Descriptive Statistics)  ใช้เพื่ออะไร" },
+  { id: 24, q: "หน่วยทั้งหมดที่เราสนใจศึกษาเรียกว่าอะไร" },
+  { id: 25, q: "ส่วนหนึ่งของประชากรที่ถูกเลือกมาศึกษาเพื่อเป็นตัวแทนเรียกว่าอะไร" },
+  { id: 26, q: "HA  ย่อมาจากอะไร" },
+  { id: 27, q: "หัวใจสำคัญของ HA  คืออะไร" },
+  { id: 28, q: "ระบบที่ใช้รายงานเมื่อเกิดเหตุการณ์ไม่พึงประสงค์ในโรงพยาบาลคืออะไร" },
+  { id: 29, q: "การเทียบมาตรฐานเครื่องวัดกับมาตรฐานที่สูงกว่าเรียกว่าอะไร" },
+  { id: 30, q: "กฎหมายคุ้มครองข้อมูลส่วนบุคคลของไทยคืออะไร" },
+];
+
+const TOTAL = masterCards.length;
+let remaining = [];
+let scoreA = 0, scoreB = 0;
+let currentAudio = null;
+let playedIds = [];
+
+function init() {
+  remaining = [...masterCards];
+  playedIds = [];
+  updateUI();
+}
+
+function updateUI() {
+  const left = remaining.length;
+  document.getElementById('statusLabel').innerHTML = `เหลือไพ่ในกอง: <strong>${left}</strong> ใบ`;
+  const pct = (left / TOTAL) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('drawBtn').disabled = left === 0;
+  updateWinning();
+}
+
+function updateWinning() {
+  document.getElementById('cardA').classList.toggle('winning', scoreA > scoreB && scoreA > 0);
+  document.getElementById('cardB').classList.toggle('winning', scoreB > scoreA && scoreB > 0);
+}
+
+function drawCard() {
+  if (remaining.length === 0) return;
+
+  const idx = Math.floor(Math.random() * remaining.length);
+  const card = remaining[idx];
+  remaining.splice(idx, 1);
+  playedIds.push(card.id);
+
+  const area = document.getElementById('cardArea');
+  area.classList.add('active');
+  area.innerHTML = `<span class="card-num">ข้อ ${card.id}</span><div class="card-text">${card.q}</div>`;
+  document.getElementById('cardPill').textContent = `ข้อ ${card.id}`;
+
+  // Played chips
+  const sec = document.getElementById('playedSection');
+  sec.style.display = 'block';
+  const chips = document.getElementById('playedChips');
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  chip.textContent = `#${card.id}`;
+  chips.appendChild(chip);
+
+  updateUI();
+
+  if (remaining.length === 0) {
+    area.innerHTML = `<div class="card-text">🏁 จบเกม! สุ่มครบ ${TOTAL} ข้อแล้ว</div>`;
+    document.getElementById('cardPill').textContent = 'จบเกม';
+  }
+
+  // Play audio
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  currentAudio = new Audio(`audio/q${card.id}.mp3`);
+  currentAudio.play().catch(() => {});
+}
+
+function changeScore(player, delta) {
+  if (player === 'A') {
+    scoreA = Math.max(0, scoreA + delta);
+    const el = document.getElementById('scoreA');
+    el.textContent = scoreA;
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  } else {
+    scoreB = Math.max(0, scoreB + delta);
+    const el = document.getElementById('scoreB');
+    el.textContent = scoreB;
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+  updateWinning();
+}
+
+function resetGame() {
+  if (!confirm('รีเซ็ตคะแนนและเริ่มกองไพ่ใหม่ทั้งหมด?')) return;
+  scoreA = 0; scoreB = 0;
+  document.getElementById('scoreA').textContent = 0;
+  document.getElementById('scoreB').textContent = 0;
+  document.getElementById('cardArea').classList.remove('active');
+  document.getElementById('cardArea').innerHTML = '<div class="card-text placeholder">กด "สุ่มคำถาม" เพื่อเริ่มเกม</div>';
+  document.getElementById('cardPill').textContent = 'ข้อ —';
+  document.getElementById('playedSection').style.display = 'none';
+  document.getElementById('playedChips').innerHTML = '';
+  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  init();
+}
+
+init();
+</script>
+</body>
+</html>
